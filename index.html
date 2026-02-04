@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Leonidas veux-tu être mon Valentin ? 💖</title>
+
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: url('https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif') center/cover no-repeat;
+  font-family: Verdana, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+h1 {
+  color: white;
+  font-size: 2.8em;
+  text-shadow: 2px 2px 8px #ff69b4;
+  margin-bottom: 60px;
+  text-align: center;
+}
+
+button {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  position: absolute;
+  transition: transform 0.3s;
+}
+
+#oui {
+  background: #ff69b4;
+  color: white;
+  left: 30%;
+  top: 60%;
+}
+
+#oui:hover {
+  transform: scale(1.2);
+}
+
+#non {
+  background: white;
+  color: #ff69b4;
+  left: 60%;
+  top: 60%;
+}
+
+.shake {
+  animation: shake 0.15s infinite;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.heart, .sad {
+  position: fixed;
+  top: 0;
+  animation: fall 4s linear forwards;
+  pointer-events: none;
+  font-size: 24px;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+#bordereau {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #fff100;
+  padding: 30px 40px;
+  border-radius: 20px;
+  border: 4px solid #ff1493;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 0;
+  transition: 0.3s;
+  pointer-events: none;
+  z-index: 999;
+  max-width: 420px;
+  text-align: center;
+}
+
+#progress-bar-container {
+  width: 100%;
+  height: 10px;
+  background: #ccc;
+  border-radius: 5px;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #ff69b4;
+  transition: width 0.1s linear;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Leonidas veux-tu être mon Valentin ? 💖</h1>
+
+<button id="oui">Oui</button>
+<button id="non">Non</button>
+
+<div id="bordereau">
+  <div id="message"></div>
+  <div id="progress-bar-container">
+    <div id="progress-bar"></div>
+  </div>
+</div>
+
+<script>
+const oui = document.getElementById("oui");
+const non = document.getElementById("non");
+const bordereau = document.getElementById("bordereau");
+const messageDiv = document.getElementById("message");
+const progressBar = document.getElementById("progress-bar");
+
+let nonClicks = 0;
+const maxClicks = 3;
+let locked = false;
+
+const messages = [
+  "Oh non 😞<br><br>Réfléchis un peu…",
+  "Leo… T'es serieux ??? 😭<br><br>Deux fois Non ??<br>Mon petit ... Tu le brises.",
+  "PARDON ??? 😤<br><br>Troisième fois Non ???<br><b>Très bien.</b><br>Maintenant attrape-moi si tu peux 🤡🤡"
+];
+
+// FUITE APRÈS 3 CLICS MOUAHAHA
+document.addEventListener("mousemove", (e) => {
+  if (nonClicks < maxClicks) return;
+
+  const rect = non.getBoundingClientRect();
+  const dx = rect.left + rect.width / 2 - e.clientX;
+  const dy = rect.top + rect.height / 2 - e.clientY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance < 120) {
+    let newX = rect.left + dx * 1.6;
+    let newY = rect.top + dy * 1.6;
+
+    newX = Math.max(0, Math.min(window.innerWidth - rect.width, newX));
+    newY = Math.max(0, Math.min(window.innerHeight - rect.height, newY));
+
+    non.style.left = newX + "px";
+    non.style.top = newY + "px";
+  }
+});
+
+// CLIC SUR NON FDP
+non.addEventListener("click", () => {
+  nonClicks++;
+
+  // Si le bouton a déjà fui après 3 clics, alors on le supprime
+  if (nonClicks > maxClicks) {
+    non.style.display = "none";
+    oui.style.transform = "scale(2)"; // Oui grossit
+    return;
+  }
+
+  locked = true;
+  const msg = messages[Math.min(nonClicks - 1, messages.length - 1)];
+  messageDiv.innerHTML = msg;
+
+  bordereau.style.opacity = 1;
+  bordereau.style.transform = "translate(-50%, -50%) scale(1)";
+
+  const scale = Math.max(0.4, 1 - nonClicks * 0.25);
+  non.style.transform = `scale(${scale})`;
+  non.classList.add("shake");
+
+  // Pluie d’emoji triste
+  for (let i = 0; i < 15; i++) {
+    const sad = document.createElement("div");
+    sad.className = "sad";
+    sad.textContent = "😢";
+    sad.style.left = Math.random() * window.innerWidth + "px";
+    document.body.appendChild(sad);
+    setTimeout(() => sad.remove(), 4000);
+  }
+
+  // Barre de progression 7 secondes
+  progressBar.style.width = "0%";
+  let startTime = Date.now();
+  const duration = 7000;
+
+  const interval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min((elapsed / duration) * 100, 100);
+    progressBar.style.width = progress + "%";
+
+    if (progress >= 100) {
+      clearInterval(interval);
+      bordereau.style.opacity = 0;
+      bordereau.style.transform = "translate(-50%, -50%) scale(0.8)";
+      locked = false;
+    }
+  }, 20);
+});
+
+// CLIC SUR OUI
+oui.addEventListener("click", () => {
+  for (let i = 0; i < 40; i++) {
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.textContent = "❤️";
+    heart.style.left = Math.random() * window.innerWidth + "px";
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 4000);
+  }
+  alert("BEBOU 😍 Tu as fait le bon choix ! JE T'AIME 🐠");
+});
+</script>
+
+</body>
+</html>
